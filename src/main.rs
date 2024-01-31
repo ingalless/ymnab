@@ -11,6 +11,7 @@ fn login_page() -> Html<String> {
 
 #[handler]
 fn login(pool: Data<&Pool<MySql>>, req: Json<User>) -> Response {
+    // TODO: Redirect to dashboard on success, flash error on unsuccessful 
     let user = db::auth_user(&pool, req.email.to_owned(), req.password.as_ref().unwrap().to_string());
     Response::default()
         .set_status(StatusCode::SEE_OTHER)
