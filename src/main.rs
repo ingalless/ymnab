@@ -1,5 +1,6 @@
 use db::User;
-use poem::{get, handler, http::StatusCode, listener::TcpListener, middleware::AddData, post, web::{Html, Json, Data}, EndpointExt, IntoResponse, Response, Result, Route, Server};
+use poem::{get, handler, http::StatusCode, listener::TcpListener, middleware::AddData, post, web::{Data, Form, Html, Json}, EndpointExt, IntoResponse, Response, Result, Route, Server};
+use serde::Deserialize;
 use sqlx::{mysql::MySqlPoolOptions, MySql, Pool};
 mod views;
 mod db;
@@ -9,20 +10,29 @@ fn login_page() -> Html<String> {
     Html(views::login().into())
 }
 
+#[derive(Deserialize)]
+struct Login {
+    email: String,
+    password: String
+}
+
 #[handler]
-fn login(pool: Data<&Pool<MySql>>, req: Json<User>) -> Response {
+async fn login(pool: Data<&Pool<MySql>>, params: Form<Login>) -> Response {
     // TODO: Redirect to dashboard on success, flash error on unsuccessful 
-    let user = db::auth_user(&pool, req.email.to_owned(), req.password.as_ref().unwrap().to_string());
-    Response::default()
-        .set_status(StatusCode::SEE_OTHER)
-        .with_header("Location", "/")
-        .into_response()
+    let user = db::auth_user(&pool, params.email.to_owned(), params.password.to_owned()).await;
+    match user {
+        Some(_) => Response::default()
+            .set_status(StatusCode::OK)
+            .with_header("HX-Location", "/")
+            .into_response(),
+        None => Html(views::login_error().into_string()).into_response()
+    }
 }
 
 #[handler]
 async fn sign_up(pool: Data<&Pool<MySql>>, req: Json<User>) {
-    let user = User::from_form(req.name.to_owned(), req.email.to_owned(), req.password.as_ref().unwrap().to_string());
-    db::create_user(&pool, user).await;
+    // let user = User::from_form(req.name.to_owned(), req.email.to_owned(), req.password.to_string());
+    // db::create_user(&pool, user).await;
 }
 
 #[handler]
@@ -38,6 +48,11 @@ async fn main() -> Result<(), std::io::Error> {
         .run(&pool)
         .await
         .expect("Failed to migrate the database");
+
+    match db::get_user(&pool, "jonny@example.com".to_string()).await {
+        None => db::create_user(&pool, User::from_form("jonny".to_string(), "jonny@example.com".to_string(), "password".to_string()).expect("Failed to seed user.")).await,
+        _ => {}
+    }
 
     let app = Route::new()
         .at("/", get(home))

@@ -14,9 +14,7 @@ fn header(page_title: &str) -> Markup {
 /// A static footer.
 fn footer() -> Markup {
     html! {
-        footer {
-            a href="rss.atom" { "RSS Feed" }
-        }
+        footer { }
     }
 }
 
@@ -27,6 +25,12 @@ pub fn home() -> Markup {
         p { "Home" }
     }
 
+}
+
+pub fn login_error() -> Markup {
+    html! {
+        p class="text-red-800 font-semibold" { "User not found" }
+    }
 }
 
 pub fn login() -> Markup {
@@ -40,13 +44,17 @@ pub fn login() -> Markup {
                 div {
                     p class="font-semibold" { "Create the life you want with YMNAB" }
                 }
-                div class="text-center" {
+                div class="text-center space-y-4" {
                     h2 class="text-indigo-600 text-4xl" { "Log In" }
                     p { "New to YMNAB? " a href="/signup" class="text-blue-500" { "Sign up today." } }
-                    form hx-post="/login" hx-target="body" class="flex flex-col gap-2" {
-                        input placeholder="Email Address" class="p-3 rounded-sm border";
-                        input placeholder="Password" class="p-3 rounded border" type="password";
-                        label for="remember" { input name="remember" type="checkbox" class="mr-1"; "Keep me logged in" }
+                    form hx-post="/login" hx-target="#error" class="flex flex-col space-y-4" {
+                        input name="email" placeholder="Email Address" class="p-3 rounded-sm border" type="email";
+                        input name="password" placeholder="Password" class="p-3 rounded border" type="password";
+                        div class="flex items-center justify-between" {
+                            label for="remember" { input name="remember" type="checkbox" class="mr-1"; "Keep me logged in" }
+                            a class="text-blue-600" { "Forgot password?" }
+                        }
+                        div id="error" {}
                         button type="submit" class="text-center text-white font-semibold rounded bg-indigo-600 p-3" { "Log In" }
                     }
                 }
