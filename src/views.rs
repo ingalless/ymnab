@@ -22,21 +22,50 @@ pub fn home() -> Markup {
     let title: &str = "Home";
     html! {
         (header(&title))
-        p { "Home" }
+        nav class="container mx-auto flex justify-between items-center" {
+            p { "Home" }
+            a class="text-blue-600 underline" href="/logout" { "Sign out" }
+        } 
     }
 
 }
 
-pub fn login_error() -> Markup {
+pub fn error_message(error: &str) -> Markup {
     html! {
-        p class="text-red-800 font-semibold" { "User not found" }
+        p class="text-red-800 font-semibold" { (error) }
+    }
+}
+
+pub fn signup() -> Markup {
+    let title: &str = "Sign up";
+    html! {
+        (header(&title))
+        body hx-boost="true" class="container mx-auto" {
+            h1 { (&title) }
+            div class="grid grid-cols-2 gap-4 pt-12 container mx-auto w-3/5" {
+                div {
+                    p class="font-semibold" { "Create the life you want with YMNAB" }
+                }
+                div class="text-center space-y-4" {
+                    h2 class="text-indigo-600 text-4xl" { "Log In" }
+                    p { "Have an account? " a href="/login" class="text-blue-500" { "Log in." } }
+                    form hx-post="/signup" hx-target="#error" class="flex flex-col space-y-4" {
+                        input name="name" placeholder="Name" class="p-3 rounded-sm border" type="text";
+                        input name="email" placeholder="Email Address" class="p-3 rounded-sm border" type="email";
+                        input name="password" placeholder="Password" class="p-3 rounded border" type="password";
+                        div id="error" {}
+                        button type="submit" class="text-center text-white font-semibold rounded bg-indigo-600 p-3" { "Sign Up" }
+                    }
+                }
+            }
+            (footer())
+        }
     }
 }
 
 pub fn login() -> Markup {
     let title: &str = "YMNAB";
     html! {
-        // Add the header markup to the page
         (header(&title))
         body hx-boost="true" class="container mx-auto" {
             h1 { (&title) }

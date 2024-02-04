@@ -1,8 +1,8 @@
 use bcrypt;
-use serde::Deserialize;
+use serde::{Deserialize, Serialize};
 use sqlx::{MySql, Pool};
 
-#[derive(Deserialize)]
+#[derive(Serialize, Deserialize)]
 pub struct User {
     pub name: String,
     pub email: String,
@@ -81,13 +81,20 @@ pub async fn get_user(conn: &Pool<MySql>, email: String) -> Option<User> {
     }
 }
 
-pub async fn create_user(conn: &Pool<MySql>, user: User) {
-    sqlx::query("INSERT INTO users (name, email, password, active) VALUES (?, ?, ?, ?)")
+#[derive(Debug)]
+pub struct CreateError;
+
+pub async fn create_user(conn: &Pool<MySql>, user: User) -> Result<bool, CreateError> {
+    let result = sqlx::query("INSERT INTO users (name, email, password, active) VALUES (?, ?, ?, ?)")
         .bind(user.name)
         .bind(user.email)
         .bind(user.password)
         .bind(user.active)
         .execute(conn)
-        .await
-        .unwrap();
+        .await;
+
+    match result {
+        Ok(_) => Ok(true),
+        Err(_) => Err(CreateError)
+    }
 }
