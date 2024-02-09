@@ -10,6 +10,6 @@ maud = "0.26.0"
 poem = { version = "2.0.0", features = ["session"] }
 serde = { version = "1.0.195", features = ["std", "derive"] }
 tokio = { version = "1.35.1", features = ["rt-multi-thread"] }
-sqlx = { version = "0.7", features = [ "runtime-tokio", "mysql", "chrono" ] }
+sqlx = { version = "0.7", features = [ "runtime-tokio", "sqlite", "chrono" ] }
 chrono = { version = "0.4.33", features = ["serde", "std"] }
 bcrypt = "0.15.0"

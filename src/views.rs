@@ -22,10 +22,16 @@ pub fn home() -> Markup {
     let title: &str = "Home";
     html! {
         (header(&title))
-        nav class="container mx-auto flex justify-between items-center" {
-            p { "Home" }
-            a class="text-blue-600 underline" href="/logout" { "Sign out" }
-        } 
+        main class="grid grid-cols-5 gap-4 bg-gray-950" {
+            nav class="col-span-1 bg-gray-950 text-white h-screen flex-col items-center text-center justify-center" {
+                li { "Home" }
+                li { "Users" }
+                li { "Accounts" }
+            }
+            section class="col-span-4 bg-gray-900 text-white" {
+                p { "Content" }
+            }
+        }
     }
 
 }

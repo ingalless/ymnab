@@ -1,6 +1,6 @@
 use bcrypt;
 use serde::{Deserialize, Serialize};
-use sqlx::{MySql, Pool};
+use sqlx::{Sqlite, Pool};
 
 #[derive(Serialize, Deserialize)]
 pub struct User {
@@ -44,7 +44,7 @@ impl User {
     }
 }
 
-pub async fn auth_user(conn: &Pool<MySql>, email: String, password: String) -> Option<User> {
+pub async fn auth_user(conn: &Pool<Sqlite>, email: String, password: String) -> Option<User> {
     let result: Result<(String, String, String, bool), sqlx::Error> = sqlx::query_as("SELECT name, email, password, active FROM users WHERE email = ?")
         .bind(email)
         .fetch_one(conn)
@@ -69,7 +69,7 @@ pub async fn auth_user(conn: &Pool<MySql>, email: String, password: String) -> O
     }
 }
 
-pub async fn get_user(conn: &Pool<MySql>, email: String) -> Option<User> {
+pub async fn get_user(conn: &Pool<Sqlite>, email: String) -> Option<User> {
     let result: Result<(String, String, String, bool), sqlx::Error> = sqlx::query_as("SELECT name, email, password, active FROM users WHERE email = ?")
         .bind(email)
         .fetch_one(conn)
@@ -84,7 +84,7 @@ pub async fn get_user(conn: &Pool<MySql>, email: String) -> Option<User> {
 #[derive(Debug)]
 pub struct CreateError;
 
-pub async fn create_user(conn: &Pool<MySql>, user: User) -> Result<bool, CreateError> {
+pub async fn create_user(conn: &Pool<Sqlite>, user: User) -> Result<bool, CreateError> {
     let result = sqlx::query("INSERT INTO users (name, email, password, active) VALUES (?, ?, ?, ?)")
         .bind(user.name)
         .bind(user.email)

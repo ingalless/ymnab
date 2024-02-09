@@ -8,7 +8,7 @@ use poem::{get, handler,
     session::{CookieConfig, CookieSession, Session}
 };
 use serde::Deserialize;
-use sqlx::{mysql::MySqlPoolOptions, MySql, Pool};
+use sqlx::{sqlite::SqlitePoolOptions, Sqlite, Pool};
 mod views;
 mod db;
 
@@ -43,7 +43,7 @@ struct Login {
 }
 
 #[handler]
-async fn login(pool: Data<&Pool<MySql>>, session: &Session, params: Form<Login>) -> Response {
+async fn login(pool: Data<&Pool<Sqlite>>, session: &Session, params: Form<Login>) -> Response {
     let user = db::auth_user(&pool, params.email.to_owned(), params.password.to_owned()).await;
     match user {
         Some(u) => {
@@ -64,7 +64,7 @@ struct Signup {
     password: String,
 }
 #[handler]
-async fn sign_up(pool: Data<&Pool<MySql>>, params: Form<Signup>) -> impl IntoResponse {
+async fn sign_up(pool: Data<&Pool<Sqlite>>, params: Form<Signup>) -> impl IntoResponse {
     match User::from_form(params.name.to_owned(), params.email.to_owned(), params.password.to_string()) {
         Ok(u) => {
             match db::create_user(&pool, u).await {
@@ -102,17 +102,12 @@ fn logout(session: &Session) -> impl IntoResponse {
 
 #[tokio::main]
 async fn main() -> Result<(), std::io::Error> {
-    let pool = MySqlPoolOptions::new().max_connections(5).connect("mysql://root:password@localhost/ymnab").await.expect("Could not connect to DB");
+    let pool = SqlitePoolOptions::new().max_connections(5).connect("sqlite://database.db").await.expect("Could not connect to DB");
 
     sqlx::migrate!("./migrations")
         .run(&pool)
         .await
         .expect("Failed to migrate the database");
-
-    match db::get_user(&pool, "jonny@example.com".to_string()).await {
-        None => db::create_user(&pool, User::from_form("jonny".to_string(), "jonny@example.com".to_string(), "password".to_string()).expect("Failed to seed user.")).await.unwrap(),
-        _ => false
-    };
 
     let app = Route::new()
         .at("/", get(home))
