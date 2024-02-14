@@ -36,7 +36,7 @@ impl User {
         }
     }
 
-    fn hash_password(password: String) -> Result<String, HashError> {
+    pub fn hash_password(password: String) -> Result<String, HashError> {
         match bcrypt::hash(&password.as_bytes(), 10) {
             Ok(v) => Ok(v),
             _ => Err(HashError)
@@ -69,7 +69,7 @@ pub async fn auth_user(conn: &Pool<Sqlite>, email: String, password: String) -> 
     }
 }
 
-pub async fn get_user(conn: &Pool<Sqlite>, email: String) -> Option<User> {
+pub async fn _get_user(conn: &Pool<Sqlite>, email: String) -> Option<User> {
     let result: Result<(String, String, String, bool), sqlx::Error> = sqlx::query_as("SELECT name, email, password, active FROM users WHERE email = ?")
         .bind(email)
         .fetch_one(conn)
@@ -97,4 +97,19 @@ pub async fn create_user(conn: &Pool<Sqlite>, user: User) -> Result<bool, Create
         Ok(_) => Ok(true),
         Err(_) => Err(CreateError)
     }
+}
+
+
+#[sqlx::test]
+async fn test_get_user(pool: Pool<Sqlite>) -> sqlx::Result<()> {
+    // Setup
+    sqlx::query("INSERT INTO users (name, email, password, active) VALUES ('test', 'test@example.com', '', 1)").execute(&pool).await?;
+
+    // Act
+    let user = get_user(&pool, "test@example.com".to_string()).await.expect("User is not found.");
+
+    // Assert
+    assert_eq!(user.name, "test");
+
+    Ok(())
 }
