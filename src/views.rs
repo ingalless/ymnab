@@ -23,11 +23,11 @@ pub fn home() -> Markup {
     html! {
         (header(&title))
         body class="w-full min-h-screen" {
-            main class="grid grid-cols-5 gap-4 bg-gray-950" {
-                nav class="col-span-1 bg-gray-950 text-white h-screen flex-col items-center text-center justify-center" {
-                    li { "Home" }
-                    li { "Users" }
-                    li { "Accounts" }
+            main class="grid grid-cols-5 bg-gray-950" {
+                nav class="col-span-1 bg-gray-950 text-white h-screen flex-col items-center text-center justify-center p-2" {
+                    a class="w-full rounded block py-1 px-3 bg-blue-800" href="/" { "Home" }
+                    a class="w-full rounded block py-1 px-3" href="/" { "Users" }
+                    a class="w-full rounded block py-1 px-3" href= "/" { "Accounts" }
                 }
                 section class="col-span-4 bg-gray-900 text-white" {
                     p { "Content" }
