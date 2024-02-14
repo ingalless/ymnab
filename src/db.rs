@@ -106,7 +106,7 @@ async fn test_get_user(pool: Pool<Sqlite>) -> sqlx::Result<()> {
     sqlx::query("INSERT INTO users (name, email, password, active) VALUES ('test', 'test@example.com', '', 1)").execute(&pool).await?;
 
     // Act
-    let user = get_user(&pool, "test@example.com".to_string()).await.expect("User is not found.");
+    let user = _get_user(&pool, "test@example.com".to_string()).await.expect("User is not found.");
 
     // Assert
     assert_eq!(user.name, "test");
