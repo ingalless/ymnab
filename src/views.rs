@@ -18,6 +18,15 @@ fn footer() -> Markup {
     }
 }
 
+fn account(name: &str) -> Markup {
+    html! {
+        div class="text-sm flex justify-between py-1 px-3" {
+            p class="tracking-wide text-sm" { (name) }
+            p { "£0.00" }
+        }
+    }
+}
+
 pub fn home() -> Markup {
     let title: &str = "Home";
     html! {
@@ -28,6 +37,13 @@ pub fn home() -> Markup {
                     a class="w-full rounded block py-1 px-3 bg-blue-800" href="/" { "Home" }
                     a class="w-full rounded block py-1 px-3" href="/" { "Users" }
                     a class="w-full rounded block py-1 px-3" href= "/" { "Accounts" }
+                    div class="w-full" {
+                        div class="flex justify-between py-1 px-3" {
+                            p class="tracking-wide uppercase" { "Budget" }
+                            p class="tracking-wide uppercase text-sm" { "£0.00" }
+                        }
+                        (account("Main"))
+                    }
                 }
                 section class="col-span-4 bg-gray-900 text-white" {
                     p { "Content" }
