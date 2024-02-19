@@ -1,6 +1,6 @@
 use bcrypt;
 use serde::{Deserialize, Serialize};
-use sqlx::{prelude::FromRow, sqlite::SqliteRow, Connection, Pool, Sqlite};
+use sqlx::{prelude::FromRow, Pool, Sqlite};
 
 #[derive(Serialize, Deserialize, FromRow)]
 pub struct User {

@@ -96,6 +96,15 @@ pub async fn sign_up(pool: Data<&Pool<Sqlite>>, params: Form<Signup>) -> impl In
 }
 
 #[handler]
+pub async fn wizard(session: &Session) -> impl IntoResponse {
+    if needs_login(session) {
+        return redirect_to_login();
+    }
+
+    Html(views::wizard().into_string()).into_response()
+}
+
+#[handler]
 pub async fn home(pool: Data<&Pool<Sqlite>>, session: &Session) -> impl IntoResponse {
     if needs_login(session) {
         return redirect_to_login();

@@ -29,7 +29,7 @@ fn account(name: &str) -> Markup {
 
 pub fn wizard() -> Markup {
     html! {
-
+        p { "wizard" }
     }
 }
 
