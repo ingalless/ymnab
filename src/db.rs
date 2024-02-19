@@ -1,9 +1,10 @@
 use bcrypt;
 use serde::{Deserialize, Serialize};
-use sqlx::{Sqlite, Pool};
+use sqlx::{prelude::FromRow, sqlite::SqliteRow, Connection, Pool, Sqlite};
 
-#[derive(Serialize, Deserialize)]
+#[derive(Serialize, Deserialize, FromRow)]
 pub struct User {
+    pub id: Option<i32>,
     pub name: String,
     pub email: String,
     pub password: String,
@@ -18,6 +19,7 @@ impl User {
     pub fn from_form(name: String, email: String, password: String) -> Result<Self, HashError> {
         match Self::hash_password(password) {
             Ok(v) => Ok(Self {
+                id: None,
                 name,
                 email,
                 password: v,
@@ -29,6 +31,7 @@ impl User {
 
     fn from_db(name: String, email: String, password: String, active: bool) -> Self {
         Self {
+            id: None,
             name,
             email,
             active,
@@ -69,15 +72,33 @@ pub async fn auth_user(conn: &Pool<Sqlite>, email: String, password: String) -> 
     }
 }
 
-pub async fn _get_user(conn: &Pool<Sqlite>, email: String) -> Option<User> {
-    let result: Result<(String, String, String, bool), sqlx::Error> = sqlx::query_as("SELECT name, email, password, active FROM users WHERE email = ?")
+pub async fn get_user(conn: &Pool<Sqlite>, email: String) -> Option<User> {
+    let result = sqlx::query_as::<_, User>("SELECT * FROM users WHERE email = ?")
         .bind(email)
         .fetch_one(conn)
         .await;
 
     match result {
-        Ok(row) => Some(User::from_db(row.0, row.1, row.2, row.3)),
+        Ok(row) => Some(row),
         Err(_) => None
+    }
+}
+
+#[derive(Serialize, Deserialize, FromRow)]
+pub struct Account {
+    pub id: i32,
+    pub name: String
+}
+
+pub async fn get_accounts_for_user(conn: &Pool<Sqlite>, id: i32) -> Option<Vec<Account>> {
+    let results = sqlx::query_as::<_, Account>("SELECT * FROM accounts WHERE id = ?")
+        .bind(id)
+        .fetch_all(conn)
+        .await;
+
+    match results {
+        Ok(r) => Some(r),
+        _ => None
     }
 }
 
@@ -106,7 +127,7 @@ async fn test_get_user(pool: Pool<Sqlite>) -> sqlx::Result<()> {
     sqlx::query("INSERT INTO users (name, email, password, active) VALUES ('test', 'test@example.com', '', 1)").execute(&pool).await?;
 
     // Act
-    let user = _get_user(&pool, "test@example.com".to_string()).await.expect("User is not found.");
+    let user = get_user(&pool, "test@example.com".to_string()).await.expect("User is not found.");
 
     // Assert
     assert_eq!(user.name, "test");

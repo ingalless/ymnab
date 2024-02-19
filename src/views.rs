@@ -27,6 +27,12 @@ fn account(name: &str) -> Markup {
     }
 }
 
+pub fn wizard() -> Markup {
+    html! {
+
+    }
+}
+
 pub fn home() -> Markup {
     let title: &str = "Home";
     html! {

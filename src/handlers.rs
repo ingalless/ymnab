@@ -6,13 +6,38 @@ use sqlx::{Pool, Sqlite};
 use crate::{db::User, views};
 use crate::db;
 
+fn needs_login(session: &Session) -> bool {
+    match session.get::<String>("user") {
+        Some(_) => false,
+        None => true
+    }
+}
+
+fn redirect(location: &str) -> Response {
+    Response::builder()
+        .status(StatusCode::FOUND)
+        .header(header::LOCATION, location)
+        .finish()
+}
+
+fn redirect_to_login() -> Response {
+    Response::builder()
+        .status(StatusCode::FOUND)
+        .header(header::LOCATION, "/login")
+        .finish()
+}
+
+fn redirect_to_home() -> Response {
+    Response::builder()
+        .status(StatusCode::FOUND)
+        .header(header::LOCATION, "/")
+        .finish()
+}
+
 #[handler]
 pub fn login_page(session: &Session) -> impl IntoResponse {
-    if session.get::<String>("user").is_some() {
-        Response::builder()
-                .status(StatusCode::FOUND)
-                .header(header::LOCATION, "/")
-                .finish()
+    if !needs_login(session) {
+        redirect_to_home()
     } else {
         Html(views::login().into_string()).into_response()
     }
@@ -20,11 +45,8 @@ pub fn login_page(session: &Session) -> impl IntoResponse {
 
 #[handler]
 pub fn sign_up_page(session: &Session) -> impl IntoResponse {
-    if session.get::<String>("user").is_some() {
-        Response::builder()
-                .status(StatusCode::FOUND)
-                .header(header::LOCATION, "/")
-                .finish()
+    if !needs_login(session) {
+        redirect_to_home()
     } else {
         Html(views::signup().into_string()).into_response()
     }
@@ -74,15 +96,19 @@ pub async fn sign_up(pool: Data<&Pool<Sqlite>>, params: Form<Signup>) -> impl In
 }
 
 #[handler]
-pub fn home(session: &Session) -> impl IntoResponse {
-    if session.get::<String>("user").is_none() {
-        Response::builder()
-                    .status(StatusCode::FOUND)
-                    .header(header::LOCATION, "/login")
-                    .finish()
-    } else {
-        Html(views::home().into_string()).into_response()
+pub async fn home(pool: Data<&Pool<Sqlite>>, session: &Session) -> impl IntoResponse {
+    if needs_login(session) {
+        return redirect_to_login();
     }
+
+    let user = db::get_user(&pool, session.get("user").unwrap()).await.unwrap();
+    let accounts = db::get_accounts_for_user(&pool, user.id.unwrap()).await;
+
+    if accounts.unwrap().is_empty() {
+        return redirect("/wizard");
+    }
+
+    Html(views::home().into_string()).into_response()
 }
 
 #[handler]

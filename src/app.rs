@@ -4,15 +4,13 @@ use sqlx::{Pool, Sqlite};
 use crate::handlers::{home, login_page, login, sign_up_page, sign_up, logout};
 
 pub fn app(pool: Pool<Sqlite>) -> impl IntoEndpoint {
-    let app = Route::new()
+    Route::new()
         .at("/", get(home))
         .at("/login", get(login_page).post(login))
         .at("/signup", get(sign_up_page).post(sign_up))
         .at("/logout", get(logout))
         .with(AddData::new(pool))
-        .with(CookieSession::new(CookieConfig::default().secure(false)));
-
-    return app;
+        .with(CookieSession::new(CookieConfig::default().secure(false)))
 }
 
 #[cfg(test)] 
