@@ -59,7 +59,7 @@ mod tests {
         
         // Assert
         resp.assert_status_is_ok();
-        resp.assert_header("HX-Location", "/");
+        resp.assert_header("HX-Redirect", "/");
 
         Ok(())
     }
