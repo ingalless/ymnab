@@ -44,7 +44,7 @@ pub async fn login(pool: Data<&Pool<Sqlite>>, session: &Session, params: Form<Lo
             session.set("user", u.email);
             Response::default()
                 .set_status(StatusCode::OK)
-                .with_header("HX-Location", "/")
+                .with_header("HX-Redirect", "/")
                 .into_response()
         },
         None => Html(views::error_message("User not found").into_string()).into_response()
