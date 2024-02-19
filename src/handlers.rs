@@ -3,7 +3,7 @@ use poem::{handler, http::{header, StatusCode}, session::Session, web::{Data, Fo
 use serde::Deserialize;
 use sqlx::{Pool, Sqlite};
 
-use crate::{db::User, views};
+use crate::{db::User, views::{self, simple_error}};
 use crate::db;
 
 fn needs_login(session: &Session) -> bool {
@@ -96,28 +96,21 @@ pub async fn sign_up(pool: Data<&Pool<Sqlite>>, params: Form<Signup>) -> impl In
 }
 
 #[handler]
-pub async fn wizard(session: &Session) -> impl IntoResponse {
-    if needs_login(session) {
-        return redirect_to_login();
-    }
-
-    Html(views::wizard().into_string()).into_response()
-}
-
-#[handler]
 pub async fn home(pool: Data<&Pool<Sqlite>>, session: &Session) -> impl IntoResponse {
     if needs_login(session) {
         return redirect_to_login();
     }
 
-    let user = db::get_user(&pool, session.get("user").unwrap()).await.unwrap();
-    let accounts = db::get_accounts_for_user(&pool, user.id.unwrap()).await;
-
-    if accounts.unwrap().is_empty() {
-        return redirect("/wizard");
+    let user = db::get_user(&pool, session.get("user").unwrap()).await;
+    if user.is_none() {
+        return Html(simple_error("Could not get user.")).into_response();
+    }
+    let accounts = db::get_accounts_for_user(&pool, user.unwrap().id.unwrap()).await;
+    if accounts.is_none() {
+        return Html(simple_error("Could not get accounts.")).into_response();
     }
 
-    Html(views::home().into_string()).into_response()
+    Html(views::home(accounts.unwrap()).into_string()).into_response()
 }
 
 #[handler]

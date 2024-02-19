@@ -1,5 +1,13 @@
 use maud::{DOCTYPE, html, Markup};
 
+use crate::db::Account;
+
+pub fn simple_error(message: &str) -> Markup {
+    html! {
+        p { (message) }
+    }
+}
+
 /// A basic header with a dynamic `page_title`.
 fn header(page_title: &str) -> Markup {
     html! {
@@ -27,28 +35,40 @@ fn account(name: &str) -> Markup {
     }
 }
 
-pub fn wizard() -> Markup {
+fn create_new_account() -> Markup {
     html! {
-        p { "wizard" }
+        div class="space-y-2" {
+            div class="w-full rounded bg-gray-800 p-2 text-left" {
+                h5 { "No Accounts" }
+                p class="text-sm" { "You can't budget without adding accounts to YMNAB first. How about adding one now?" }
+            } 
+            button class="w-full rounded bg-gray-800 hover:bg-gray-700 transition-colors p-2 text-left" { "Add Account" }
+        }
     }
 }
 
-pub fn home() -> Markup {
+pub fn home(accounts: Vec<Account>) -> Markup {
     let title: &str = "Home";
     html! {
         (header(&title))
         body class="w-full min-h-screen" {
             main class="grid grid-cols-5 bg-gray-950" {
-                nav class="col-span-1 bg-gray-950 text-white h-screen flex-col items-center text-center justify-center p-2" {
+                nav class="col-span-1 bg-gray-950 text-white h-screen flex-col items-center text-left justify-center p-2" {
                     a class="w-full rounded block py-1 px-3 bg-blue-800" href="/" { "Home" }
                     a class="w-full rounded block py-1 px-3" href="/" { "Users" }
                     a class="w-full rounded block py-1 px-3" href= "/" { "Accounts" }
                     div class="w-full" {
-                        div class="flex justify-between py-1 px-3" {
-                            p class="tracking-wide uppercase" { "Budget" }
-                            p class="tracking-wide uppercase text-sm" { "£0.00" }
+                        @if !accounts.is_empty() {
+                            div class="flex justify-between py-1 px-3" {
+                                p class="tracking-wide uppercase" { "Budget" }
+                                p class="tracking-wide uppercase text-sm" { "£0.00" }
+                            }
+                            @for acc in accounts {
+                                (account(&acc.name))
+                            }
+                        } @else {
+                            (create_new_account())
                         }
-                        (account("Main"))
                     }
                 }
                 section class="col-span-4 bg-gray-900 text-white" {
