@@ -102,6 +102,31 @@ pub async fn get_accounts_for_user(conn: &Pool<Sqlite>, id: i32) -> Option<Vec<A
     }
 }
 
+pub async fn create_account(conn: &Pool<Sqlite>, user_id: i32, name: &str, starting_balance: i32) -> Result<(), &'static str> {
+    let insert_result = sqlx::query("INSERT INTO accounts (user_id, name) values (?, ?)")
+        .bind(user_id)
+        .bind(name)
+        .execute(conn)
+        .await;
+
+    if insert_result.is_err() {
+        return Err("failed to create account");
+    }
+
+    let starting_balance_result = sqlx::query("INSERT INTO transactions (account_id, date, memo, inflow, cleared) values (?, datetime(), ?, ?, ?)")
+        .bind(insert_result.as_ref().unwrap().last_insert_rowid())
+        .bind("Starting balance")
+        .bind(starting_balance)
+        .bind(true)
+        .execute(conn)
+        .await;
+
+    return match starting_balance_result {
+        Ok(_) => Ok(()),
+        _=> Err("failed to create starting balance"),
+    }
+}
+
 #[derive(Debug)]
 pub struct CreateError;
 

@@ -1,7 +1,7 @@
-use poem::{get, middleware::AddData, session::{CookieConfig, CookieSession}, EndpointExt, IntoEndpoint, Route
+use poem::{get, middleware::AddData, post, session::{CookieConfig, CookieSession}, EndpointExt, IntoEndpoint, Route
 };
 use sqlx::{Pool, Sqlite};
-use crate::handlers::{home, login_page, login, sign_up_page, sign_up, logout};
+use crate::handlers::{create_account, home, login, login_page, logout, sign_up, sign_up_page};
 
 pub fn app(pool: Pool<Sqlite>) -> impl IntoEndpoint {
     Route::new()
@@ -9,6 +9,7 @@ pub fn app(pool: Pool<Sqlite>) -> impl IntoEndpoint {
         .at("/login", get(login_page).post(login))
         .at("/signup", get(sign_up_page).post(sign_up))
         .at("/logout", get(logout))
+        .at("/account/create", post(create_account))
         .with(AddData::new(pool))
         .with(CookieSession::new(CookieConfig::default().secure(false)))
 }

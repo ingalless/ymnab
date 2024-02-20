@@ -44,11 +44,11 @@ fn create_new_account() -> Markup {
             } 
             button onclick="openAccountForm()" class="rounded bg-gray-800 hover:bg-gray-700 transition-colors py-1 px-2 text-left" { "Add Account" }
             form id="new-account-form" class="hidden space-y-2" hx-post="/account/create" {
-                input class="w-full rounded bg-gray-800 border border-gray-700 py-1 px-2" type="text" name="nickname" placeholder="Nickname" {}
+                input class="w-full rounded bg-gray-800 border border-gray-700 py-1 px-2" type="text" name="name" placeholder="Nickname" {}
                 select class="w-full rounded bg-gray-800 border border-gray-700 py-1 px-2" type="text" name="type" placeholder="Type" {
                     option value="checking" { "Checking" }
                 }
-                input class="w-full rounded bg-gray-800 border border-gray-700 py-1 px-2" type="text" name="balance" placeholder="Starting balance" {}
+                input class="w-full rounded bg-gray-800 border border-gray-700 py-1 px-2" type="text" name="starting_balance" placeholder="Starting balance" {}
                 button type="submit" class="rounded bg-gray-800 hover:bg-gray-700 transition-colors py-1 px-2 text-left" { "Save" }
             }
         }

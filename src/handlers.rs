@@ -34,6 +34,31 @@ fn redirect_to_home() -> Response {
         .finish()
 }
 
+
+
+#[derive(Deserialize)]
+struct CreateAccountBody {
+    name: String,
+    starting_balance: i32,
+}
+
+#[handler]
+pub async fn create_account(pool: Data<&Pool<Sqlite>>, session: &Session, data: Form<CreateAccountBody>) -> impl IntoResponse {
+    if needs_login(session) {
+        return StatusCode::UNAUTHORIZED.into();
+    }
+
+    let user = db::get_user(&pool, session.get("user").unwrap()).await.unwrap();
+
+    match db::create_account(&pool, user.id.unwrap(), &data.name, data.starting_balance).await {
+        Ok(_) => StatusCode::OK.into_response(),
+        Err(message) => {
+            println!("{}", message);
+            StatusCode::INTERNAL_SERVER_ERROR.into_response()
+        }
+    }
+}
+
 #[handler]
 pub fn login_page(session: &Session) -> impl IntoResponse {
     if !needs_login(session) {
