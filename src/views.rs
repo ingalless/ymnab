@@ -1,4 +1,4 @@
-use maud::{DOCTYPE, html, Markup};
+use maud::{html, Markup, PreEscaped, DOCTYPE};
 
 use crate::db::Account;
 
@@ -42,7 +42,23 @@ fn create_new_account() -> Markup {
                 h5 { "No Accounts" }
                 p class="text-sm" { "You can't budget without adding accounts to YMNAB first. How about adding one now?" }
             } 
-            button class="w-full rounded bg-gray-800 hover:bg-gray-700 transition-colors p-2 text-left" { "Add Account" }
+            button onclick="openAccountForm()" class="rounded bg-gray-800 hover:bg-gray-700 transition-colors py-1 px-2 text-left" { "Add Account" }
+            form id="new-account-form" class="hidden space-y-2" hx-post="/account/create" {
+                input class="w-full rounded bg-gray-800 border border-gray-700 py-1 px-2" type="text" name="nickname" placeholder="Nickname" {}
+                select class="w-full rounded bg-gray-800 border border-gray-700 py-1 px-2" type="text" name="type" placeholder="Type" {
+                    option value="checking" { "Checking" }
+                }
+                input class="w-full rounded bg-gray-800 border border-gray-700 py-1 px-2" type="text" name="balance" placeholder="Starting balance" {}
+                button type="submit" class="rounded bg-gray-800 hover:bg-gray-700 transition-colors py-1 px-2 text-left" { "Save" }
+            }
+        }
+        script {
+            (PreEscaped(r#"
+                function openAccountForm() {
+                    const form = document.getElementById("new-account-form");
+                    form.classList.remove("hidden")
+                }
+            "#))
         }
     }
 }
