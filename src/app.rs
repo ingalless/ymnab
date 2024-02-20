@@ -18,7 +18,7 @@ mod tests {
     use poem::test::TestClient;
     use serde::{Serialize, Deserialize};
 
-    use crate::db::User;
+    use crate::db::{get_user, User};
 
     use super::*;
 
@@ -125,7 +125,7 @@ mod tests {
 
         response.assert_status_is_ok();
 
-        let user = _get_user(&pool, "test@example.com".to_string()).await.unwrap();
+        let user = get_user(&pool, "test@example.com".to_string()).await.unwrap();
 
         assert_eq!(user.email, "test@example.com");
         assert_eq!(user.name, "Test");
