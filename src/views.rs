@@ -1,6 +1,6 @@
 use maud::{html, Markup, PreEscaped, DOCTYPE};
 
-use crate::db::Account;
+use crate::{db::{Account, Transaction}, helpers::get_total_as_formatted_string};
 
 pub fn simple_error(message: &str) -> Markup {
     html! {
@@ -27,11 +27,21 @@ fn footer() -> Markup {
     }
 }
 
-fn account(name: &str, total: &str) -> Markup {
+fn account(id: i32, name: &str, total: &str) -> Markup {
     html! {
-        div class="text-sm flex justify-between py-1 px-3" {
+        a hx-get=(format!("/accounts/{}", id)) hx-target="#content" hx-swap="innerHTML" class="block text-sm flex justify-between py-1 px-3" {
             p class="tracking-wide text-sm" { (name) }
             p { (total) }
+        }
+    }
+}
+
+pub fn transactions_list(transactions: Vec<Transaction>) -> Markup {
+    html! {
+        ul {
+            @for transaction in transactions {
+                li { (format!("{}:{}:{}:{}:{}", transaction.id, transaction.memo, transaction.date, transaction.cleared, get_total_as_formatted_string(transaction.inflow))) }
+            }
         }
     }
 }
@@ -69,7 +79,7 @@ fn create_new_account() -> Markup {
 
 pub fn accounts_partial(accounts: Vec<Account>, budget_total: String) -> Markup {
     html! {
-        div hx-trigger="accountsUpdated" hx-get="/accounts" hx-swap="outerHTML" class="w-full space-y-2" {
+        div hx-trigger="accountsUpdated" hx-get="/api/accounts" hx-swap="outerHTML" class="w-full space-y-2" {
             @if accounts.is_empty() {
                 (no_account())
             } @else {
@@ -78,7 +88,7 @@ pub fn accounts_partial(accounts: Vec<Account>, budget_total: String) -> Markup 
                     p class="tracking-wide uppercase text-sm" { (budget_total) }
                 }
                 @for acc in accounts {
-                    (account(&acc.name, &acc.get_total_as_formatted_string()))
+                    (account(acc.id, &acc.name, &acc.get_total_as_formatted_string()))
                 }
             }
             (create_new_account())
@@ -94,11 +104,10 @@ pub fn home(accounts: Vec<Account>, budget_total: String) -> Markup {
             main class="grid grid-cols-5 bg-gray-950" {
                 nav class="col-span-1 bg-gray-950 text-white h-screen flex-col items-center text-left justify-center p-2" {
                     a class="w-full rounded block py-1 px-3 bg-blue-800" href="/" { "Home" }
-                    a class="w-full rounded block py-1 px-3" href="/" { "Users" }
-                    a class="w-full rounded block py-1 px-3" href= "/" { "Accounts" }
+                    a class="w-full rounded block py-1 px-3" href="/" { "All Accounts" }
                     (accounts_partial(accounts, budget_total))
                 }
-                section class="col-span-4 bg-gray-900 text-white" {
+                section id="content" class="col-span-4 bg-gray-900 text-white" {
                     p { "Content" }
                 }
             }

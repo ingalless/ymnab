@@ -112,6 +112,31 @@ pub async fn get_accounts_for_user(conn: &Pool<Sqlite>, id: i32) -> Option<Vec<A
     }
 }
 
+#[derive(sqlx::FromRow)]
+pub struct Transaction {
+    pub id: i32,
+    pub account_id: i32,
+    pub date: chrono::NaiveDateTime,
+    pub memo: String,
+    pub inflow: i64,
+    pub outflow: i64,
+    pub cleared: bool,
+}
+pub async fn get_transactions_for_account(conn: &Pool<Sqlite>, id: i32) -> Option<Vec<Transaction>> {
+    let result = sqlx::query_as::<_, Transaction>("SELECT * FROM transactions WHERE account_id = ?")
+        .bind(id)
+        .fetch_all(conn)
+        .await;
+
+    match result {
+        Ok(row) => Some(row),
+        Err(e) => {
+            println!("{:?}", e);
+            None
+        }
+    }
+}
+
 pub async fn create_account(conn: &Pool<Sqlite>, user_id: i32, name: &str, starting_balance: i64) -> Result<(), &'static str> {
     let insert_result = sqlx::query("INSERT INTO accounts (user_id, name) values (?, ?)")
         .bind(user_id)

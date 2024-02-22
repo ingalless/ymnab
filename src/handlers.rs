@@ -1,5 +1,5 @@
 use maud::html;
-use poem::{handler, http::{header, StatusCode}, session::Session, web::{Data, Form, Html}, IntoResponse, Response};
+use poem::{handler, http::{header, StatusCode}, session::Session, web::{Data, Form, Html, Path}, IntoResponse, Response};
 use serde::Deserialize;
 use sqlx::{Pool, Sqlite};
 
@@ -40,7 +40,6 @@ struct CreateAccountBody {
     starting_balance: String,
 }
 
-
 #[handler]
 pub async fn get_accounts(pool: Data<&Pool<Sqlite>>, session: &Session) -> impl IntoResponse {
     if needs_login(session) {
@@ -61,6 +60,18 @@ pub async fn get_accounts(pool: Data<&Pool<Sqlite>>, session: &Session) -> impl 
     });
 
     Html(views::accounts_partial(accounts.unwrap(), get_total_as_formatted_string(budget_total)).into_string()).into_response()
+}
+
+#[handler]
+pub async fn get_transactions(pool: Data<&Pool<Sqlite>>, session: &Session, Path(id): Path<String>) -> impl IntoResponse {
+    if needs_login(session) {
+        return StatusCode::UNAUTHORIZED.into();
+    }
+
+    match db::get_transactions_for_account(&pool, id.parse().unwrap()).await {
+        Some(t) => Html(views::transactions_list(t).into_string()).into_response(),
+        None => Html(html! { p { "Failed to load accounts." } }.into_string()).into_response()
+    }
 }
 
 #[handler]
