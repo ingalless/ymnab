@@ -13,7 +13,7 @@ fn needs_login(session: &Session) -> bool {
     }
 }
 
-fn redirect(location: &str) -> Response {
+fn _redirect(location: &str) -> Response {
     Response::builder()
         .status(StatusCode::FOUND)
         .header(header::LOCATION, location)
