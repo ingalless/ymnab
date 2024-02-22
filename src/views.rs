@@ -36,22 +36,25 @@ fn account(name: &str, total: &str) -> Markup {
     }
 }
 
+fn no_account() -> Markup {
+    html! {
+        div class="w-full rounded bg-gray-800 p-2 text-left" {
+            h5 { "No Accounts" }
+            p class="text-sm" { "You can't budget without adding accounts to YMNAB first. How about adding one now?" }
+        } 
+    }
+}
+
 fn create_new_account() -> Markup {
     html! {
-        div class="space-y-2" {
-            div class="w-full rounded bg-gray-800 p-2 text-left" {
-                h5 { "No Accounts" }
-                p class="text-sm" { "You can't budget without adding accounts to YMNAB first. How about adding one now?" }
-            } 
-            button onclick="openAccountForm()" class="rounded bg-gray-800 hover:bg-gray-700 transition-colors py-1 px-2 text-left" { "Add Account" }
-            form id="new-account-form" class="hidden space-y-2" hx-post="/account/create" {
-                input class="w-full rounded bg-gray-800 border border-gray-700 py-1 px-2" type="text" name="name" placeholder="Nickname" {}
-                select class="w-full rounded bg-gray-800 border border-gray-700 py-1 px-2" type="text" name="type" placeholder="Type" {
-                    option value="checking" { "Checking" }
-                }
-                input class="w-full rounded bg-gray-800 border border-gray-700 py-1 px-2" type="text" name="starting_balance" placeholder="Starting balance" {}
-                button type="submit" class="rounded bg-gray-800 hover:bg-gray-700 transition-colors py-1 px-2 text-left" { "Save" }
+        button onclick="openAccountForm()" class="rounded bg-gray-800 hover:bg-gray-700 transition-colors py-1 px-2 text-left" { "Add Account" }
+        form id="new-account-form" class="hidden space-y-2" hx-post="/account/create" {
+            input class="w-full rounded bg-gray-800 border border-gray-700 py-1 px-2" type="text" name="name" placeholder="Nickname" {}
+            select class="w-full rounded bg-gray-800 border border-gray-700 py-1 px-2" type="text" name="type" placeholder="Type" {
+                option value="checking" { "Checking" }
             }
+            input class="w-full rounded bg-gray-800 border border-gray-700 py-1 px-2" type="text" name="starting_balance" placeholder="Starting balance" {}
+            button type="submit" class="rounded bg-gray-800 hover:bg-gray-700 transition-colors py-1 px-2 text-left" { "Save" }
         }
         script {
             (PreEscaped(r#"
@@ -74,8 +77,10 @@ pub fn home(accounts: Vec<Account>, budget_total: String) -> Markup {
                     a class="w-full rounded block py-1 px-3 bg-blue-800" href="/" { "Home" }
                     a class="w-full rounded block py-1 px-3" href="/" { "Users" }
                     a class="w-full rounded block py-1 px-3" href= "/" { "Accounts" }
-                    div class="w-full" {
-                        @if !accounts.is_empty() {
+                    div class="w-full space-y-2" {
+                        @if accounts.is_empty() {
+                            (no_account())
+                        } @else {
                             div class="flex justify-between py-1 px-3" {
                                 p class="tracking-wide uppercase" { "Budget" }
                                 p class="tracking-wide uppercase text-sm" { (budget_total) }
@@ -83,9 +88,8 @@ pub fn home(accounts: Vec<Account>, budget_total: String) -> Markup {
                             @for acc in accounts {
                                 (account(&acc.name, &acc.get_total_as_formatted_string()))
                             }
-                        } @else {
-                            (create_new_account())
                         }
+                        (create_new_account())
                     }
                 }
                 section class="col-span-4 bg-gray-900 text-white" {

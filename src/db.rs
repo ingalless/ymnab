@@ -100,7 +100,7 @@ impl Account {
 }
 
 pub async fn get_accounts_for_user(conn: &Pool<Sqlite>, id: i32) -> Option<Vec<Account>> {
-    let results = sqlx::query_as::<_, Account>(r#"SELECT *, (SELECT sum(inflow) - sum(outflow) FROM transactions WHERE account_id = ?) as "total" FROM accounts WHERE id = ?"#)
+    let results = sqlx::query_as::<_, Account>(r#"SELECT *, (SELECT sum(inflow) - sum(outflow) FROM transactions WHERE accounts.id = transactions.account_id) as "total" FROM accounts WHERE user_id = ?"#)
         .bind(id)
         .bind(id)
         .fetch_all(conn)
