@@ -112,7 +112,7 @@ pub async fn get_accounts_for_user(conn: &Pool<Sqlite>, id: i32) -> Option<Vec<A
     }
 }
 
-pub async fn create_account(conn: &Pool<Sqlite>, user_id: i32, name: &str, starting_balance: i32) -> Result<(), &'static str> {
+pub async fn create_account(conn: &Pool<Sqlite>, user_id: i32, name: &str, starting_balance: i64) -> Result<(), &'static str> {
     let insert_result = sqlx::query("INSERT INTO accounts (user_id, name) values (?, ?)")
         .bind(user_id)
         .bind(name)

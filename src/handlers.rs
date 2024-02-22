@@ -3,7 +3,7 @@ use poem::{handler, http::{header, StatusCode}, session::Session, web::{Data, Fo
 use serde::Deserialize;
 use sqlx::{Pool, Sqlite};
 
-use crate::{db::User, helpers::get_total_as_formatted_string, views::{self, simple_error}};
+use crate::{db::User, helpers::{get_money_from_string, get_total_as_formatted_string}, views::{self, simple_error}};
 use crate::db;
 
 fn needs_login(session: &Session) -> bool {
@@ -40,6 +40,29 @@ struct CreateAccountBody {
     starting_balance: String,
 }
 
+
+#[handler]
+pub async fn get_accounts(pool: Data<&Pool<Sqlite>>, session: &Session) -> impl IntoResponse {
+    if needs_login(session) {
+        return StatusCode::UNAUTHORIZED.into();
+    }
+
+    let user = db::get_user(&pool, session.get("user").unwrap()).await;
+    if user.is_none() {
+        return Html(simple_error("Could not get user.")).into_response();
+    }
+    let accounts = db::get_accounts_for_user(&pool, user.unwrap().id.unwrap()).await;
+    if accounts.is_none() {
+        return Html(simple_error("Could not get accounts.")).into_response();
+    }
+
+    let budget_total = accounts.as_ref().unwrap().iter().fold(0, |acc, x| {
+        acc + x.total
+    });
+
+    Html(views::accounts_partial(accounts.unwrap(), get_total_as_formatted_string(budget_total)).into_string()).into_response()
+}
+
 #[handler]
 pub async fn create_account(pool: Data<&Pool<Sqlite>>, session: &Session, data: Form<CreateAccountBody>) -> impl IntoResponse {
     if needs_login(session) {
@@ -48,10 +71,15 @@ pub async fn create_account(pool: Data<&Pool<Sqlite>>, session: &Session, data: 
 
     let user = db::get_user(&pool, session.get("user").unwrap()).await.unwrap();
 
-    let starting_balance: i32 = data.starting_balance.trim().replace(",", "").replace(".", "").parse().unwrap();
+    let starting_balance: i64 = match get_money_from_string(data.starting_balance.clone()) {
+        Ok(v) => v,
+        Err(e) => {
+            return StatusCode::BAD_REQUEST.with_body(e).into_response()
+        }
+    };
 
     match db::create_account(&pool, user.id.unwrap(), &data.name, starting_balance).await {
-        Ok(_) => StatusCode::OK.into_response(),
+        Ok(_) => StatusCode::OK.with_header("HX-Trigger", "accountsUpdated").into_response(),
         Err(message) => {
             println!("{}", message);
             StatusCode::INTERNAL_SERVER_ERROR.into_response()

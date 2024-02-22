@@ -67,6 +67,25 @@ fn create_new_account() -> Markup {
     }
 }
 
+pub fn accounts_partial(accounts: Vec<Account>, budget_total: String) -> Markup {
+    html! {
+        div hx-trigger="accountsUpdated" hx-get="/accounts" hx-swap="outerHTML" class="w-full space-y-2" {
+            @if accounts.is_empty() {
+                (no_account())
+            } @else {
+                div class="flex justify-between py-1 px-3" {
+                    p class="tracking-wide uppercase" { "Budget" }
+                    p class="tracking-wide uppercase text-sm" { (budget_total) }
+                }
+                @for acc in accounts {
+                    (account(&acc.name, &acc.get_total_as_formatted_string()))
+                }
+            }
+            (create_new_account())
+        }
+    }
+}
+
 pub fn home(accounts: Vec<Account>, budget_total: String) -> Markup {
     let title: &str = "Home";
     html! {
@@ -77,20 +96,7 @@ pub fn home(accounts: Vec<Account>, budget_total: String) -> Markup {
                     a class="w-full rounded block py-1 px-3 bg-blue-800" href="/" { "Home" }
                     a class="w-full rounded block py-1 px-3" href="/" { "Users" }
                     a class="w-full rounded block py-1 px-3" href= "/" { "Accounts" }
-                    div class="w-full space-y-2" {
-                        @if accounts.is_empty() {
-                            (no_account())
-                        } @else {
-                            div class="flex justify-between py-1 px-3" {
-                                p class="tracking-wide uppercase" { "Budget" }
-                                p class="tracking-wide uppercase text-sm" { (budget_total) }
-                            }
-                            @for acc in accounts {
-                                (account(&acc.name, &acc.get_total_as_formatted_string()))
-                            }
-                        }
-                        (create_new_account())
-                    }
+                    (accounts_partial(accounts, budget_total))
                 }
                 section class="col-span-4 bg-gray-900 text-white" {
                     p { "Content" }
