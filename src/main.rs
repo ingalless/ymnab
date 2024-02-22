@@ -2,6 +2,7 @@ mod views;
 mod handlers;
 mod db;
 mod app;
+mod helpers;
 
 use poem::{ 
     listener::TcpListener,

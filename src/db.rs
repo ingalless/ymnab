@@ -2,6 +2,8 @@ use bcrypt;
 use serde::{Deserialize, Serialize};
 use sqlx::{prelude::FromRow, Pool, Sqlite};
 
+use crate::helpers::get_total_as_formatted_string;
+
 #[derive(Serialize, Deserialize, FromRow)]
 pub struct User {
     pub id: Option<i32>,
@@ -87,11 +89,19 @@ pub async fn get_user(conn: &Pool<Sqlite>, email: String) -> Option<User> {
 #[derive(Serialize, Deserialize, FromRow)]
 pub struct Account {
     pub id: i32,
-    pub name: String
+    pub name: String,
+    pub total: i64,
+}
+
+impl Account {
+    pub fn get_total_as_formatted_string(&self) -> String {
+        get_total_as_formatted_string(self.total)
+    }
 }
 
 pub async fn get_accounts_for_user(conn: &Pool<Sqlite>, id: i32) -> Option<Vec<Account>> {
-    let results = sqlx::query_as::<_, Account>("SELECT * FROM accounts WHERE id = ?")
+    let results = sqlx::query_as::<_, Account>(r#"SELECT *, (SELECT sum(inflow) - sum(outflow) FROM transactions WHERE account_id = ?) as "total" FROM accounts WHERE id = ?"#)
+        .bind(id)
         .bind(id)
         .fetch_all(conn)
         .await;
@@ -123,7 +133,10 @@ pub async fn create_account(conn: &Pool<Sqlite>, user_id: i32, name: &str, start
 
     return match starting_balance_result {
         Ok(_) => Ok(()),
-        _=> Err("failed to create starting balance"),
+        Err(e)=> {
+            println!("{:?}", e);
+            Err("failed to create starting balance")
+        },
     }
 }
 

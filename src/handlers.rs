@@ -3,7 +3,7 @@ use poem::{handler, http::{header, StatusCode}, session::Session, web::{Data, Fo
 use serde::Deserialize;
 use sqlx::{Pool, Sqlite};
 
-use crate::{db::User, views::{self, simple_error}};
+use crate::{db::User, helpers::get_total_as_formatted_string, views::{self, simple_error}};
 use crate::db;
 
 fn needs_login(session: &Session) -> bool {
@@ -34,12 +34,10 @@ fn redirect_to_home() -> Response {
         .finish()
 }
 
-
-
 #[derive(Deserialize)]
 struct CreateAccountBody {
     name: String,
-    starting_balance: i32,
+    starting_balance: String,
 }
 
 #[handler]
@@ -50,7 +48,9 @@ pub async fn create_account(pool: Data<&Pool<Sqlite>>, session: &Session, data: 
 
     let user = db::get_user(&pool, session.get("user").unwrap()).await.unwrap();
 
-    match db::create_account(&pool, user.id.unwrap(), &data.name, data.starting_balance).await {
+    let starting_balance: i32 = data.starting_balance.trim().replace(",", "").replace(".", "").parse().unwrap();
+
+    match db::create_account(&pool, user.id.unwrap(), &data.name, starting_balance).await {
         Ok(_) => StatusCode::OK.into_response(),
         Err(message) => {
             println!("{}", message);
@@ -135,7 +135,11 @@ pub async fn home(pool: Data<&Pool<Sqlite>>, session: &Session) -> impl IntoResp
         return Html(simple_error("Could not get accounts.")).into_response();
     }
 
-    Html(views::home(accounts.unwrap()).into_string()).into_response()
+    let budget_total = accounts.as_ref().unwrap().iter().fold(0, |acc, x| {
+        acc + x.total
+    });
+
+    Html(views::home(accounts.unwrap(), get_total_as_formatted_string(budget_total)).into_string()).into_response()
 }
 
 #[handler]

@@ -10,12 +10,11 @@ CREATE TABLE IF NOT EXISTS accounts
 CREATE TABLE IF NOT EXISTS transactions
 (
   id          INTEGER PRIMARY KEY NOT NULL,
-  account_id  INTEGER
+  account_id  INTEGER,
   date        DATETIME NOT NULL,
   memo        VARCHAR(250),
   inflow      INTEGER DEFAULT 0,
   outflow     INTEGER DEFAULT 0,
   cleared     BOOLEAN NOT NULL DEFAULT 0,
 
-  FOREIGN KEY (account_id) REFERENCES accounts(id)
-);
+  FOREIGN KEY (account_id) REFERENCES accounts(id));

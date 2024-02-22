@@ -5,6 +5,7 @@ use crate::db::Account;
 pub fn simple_error(message: &str) -> Markup {
     html! {
         p { (message) }
+        a href="/logout" { "You could try logging out." }
     }
 }
 
@@ -26,11 +27,11 @@ fn footer() -> Markup {
     }
 }
 
-fn account(name: &str) -> Markup {
+fn account(name: &str, total: &str) -> Markup {
     html! {
         div class="text-sm flex justify-between py-1 px-3" {
             p class="tracking-wide text-sm" { (name) }
-            p { "£0.00" }
+            p { (total) }
         }
     }
 }
@@ -63,7 +64,7 @@ fn create_new_account() -> Markup {
     }
 }
 
-pub fn home(accounts: Vec<Account>) -> Markup {
+pub fn home(accounts: Vec<Account>, budget_total: String) -> Markup {
     let title: &str = "Home";
     html! {
         (header(&title))
@@ -77,10 +78,10 @@ pub fn home(accounts: Vec<Account>) -> Markup {
                         @if !accounts.is_empty() {
                             div class="flex justify-between py-1 px-3" {
                                 p class="tracking-wide uppercase" { "Budget" }
-                                p class="tracking-wide uppercase text-sm" { "£0.00" }
+                                p class="tracking-wide uppercase text-sm" { (budget_total) }
                             }
                             @for acc in accounts {
-                                (account(&acc.name))
+                                (account(&acc.name, &acc.get_total_as_formatted_string()))
                             }
                         } @else {
                             (create_new_account())
