@@ -38,9 +38,20 @@ fn account(id: i32, name: &str, total: &str) -> Markup {
 
 pub fn transactions_list(transactions: Vec<Transaction>) -> Markup {
     html! {
-        ul {
+        div class="block w-full grid grid grid-cols-6" {
+            div { "Id" }
+            div { "Memo" }
+            div { "Date" }
+            div { "Cleared" }
+            div { "Inflow" }
+            div { "Outflow" }
             @for transaction in transactions {
-                li { (format!("{}:{}:{}:{}:{}", transaction.id, transaction.memo, transaction.date, transaction.cleared, get_total_as_formatted_string(transaction.inflow))) }
+                div { (transaction.id) }
+                div { (transaction.memo) }
+                div { (transaction.date) }
+                div { (transaction.cleared) }
+                div { (get_total_as_formatted_string(transaction.inflow)) }
+                div { (get_total_as_formatted_string(transaction.outflow)) }
             }
         }
     }
