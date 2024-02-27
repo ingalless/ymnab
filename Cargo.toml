@@ -14,3 +14,4 @@ sqlx = { version = "0.7", features = [ "runtime-tokio", "sqlite", "chrono" ] }
 chrono = { version = "0.4.33", features = ["serde", "std"] }
 rusty-money = { version = "0.4.1", features = ["iso", "crypto"] }
 bcrypt = "0.15.0"
+dotenvy = "0.15.7"
