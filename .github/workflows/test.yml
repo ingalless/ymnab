@@ -22,7 +22,8 @@ jobs:
       run: cargo test --verbose
     - name: Build image
       run: docker build -t ymnab:${{ github.run_id }}
-    - name: echo $CR_PAT | docker login ghcr.io -u USERNAME --password-stdin
+    - name: Docker login
+      run: echo $CR_PAT | docker login ghcr.io -u USERNAME --password-stdin
       env:
         CR_PAT: ${{ secrets.GITHUB_TOKEKN }}
     # - name: Push image
