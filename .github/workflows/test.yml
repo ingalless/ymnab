@@ -25,7 +25,7 @@ jobs:
     - name: Docker login
       run: echo $CR_PAT | docker login ghcr.io -u USERNAME --password-stdin
       env:
-        CR_PAT: ${{ secrets.GITHUB_TOKEKN }}
+        CR_PAT: ${{ secrets.CRP_PAT }}
     # - name: Push image
     #   run: docker push ghcr.io/ingalless/ymnab:${{ github.run_id }}
       
